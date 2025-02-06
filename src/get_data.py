@@ -1,5 +1,5 @@
 """
-    python src/get_data.py command is used to run the program after activating virtual env
+    python src/get_data.py command is used to run the program after activating virtual
 """
 
 
