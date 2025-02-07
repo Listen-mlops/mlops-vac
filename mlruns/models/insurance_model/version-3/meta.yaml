@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1738908517935
+current_stage: None
+description: ''
+last_updated_timestamp: 1738908517935
+name: insurance_model
+run_id: fe8cb36760a8460ca9cfcf59e9ef625b
+run_link: ''
+source: mlflow-artifacts:/153633529469520642/fe8cb36760a8460ca9cfcf59e9ef625b/artifacts/model
+status: READY
+status_message: null
+storage_location: mlflow-artifacts:/153633529469520642/fe8cb36760a8460ca9cfcf59e9ef625b/artifacts/model
+user_id: null
+version: 3

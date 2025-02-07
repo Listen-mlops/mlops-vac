@@ -95,7 +95,8 @@ def train_and_eval(config_path):
 
         # model_path = config["model_path"]
         # joblib.dump(lr,model_path)
-        os.mkdir(model_dir,exist_ok=True)
+        model_dir = os.path.dirname(config["model_path"])
+        os.makedirs(model_dir,exist_ok=True)
         model_path = os.path.join(model_dir,"model.joblib")
         joblib.dump(lr,model_path)
 
