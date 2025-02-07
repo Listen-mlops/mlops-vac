@@ -14,6 +14,15 @@ import mlflow
 from urllib.parse import urlparse
 from split_data import split_data
 
+def eval_metrics(actual,pred):
+    mae = mean_absolute_error(actual,pred)
+    rmse = np.sqrt(mean_squared_error(actual,pred))
+    mse = mean_squared_error(actual,pred)
+    r2 = r2_score(actual,pred)
+
+    return rmse,mae,r2,mse
+
+
 def train_and_eval(config_path):
     config = read_param(config_path)
     train_data_path = config["split_data"]["train_path"]
@@ -23,16 +32,53 @@ def train_and_eval(config_path):
     random_state = config["base"]["random_state"]
     model_dir = config["model_path"]
 
-    alpha = ["estimators"]["ElasticNet"]["params"]["alpha"]
-    l1_ratio = ["estimators"]["ElasticNet"]["params"]["l1_ratio"]
+    alpha = config["estimators"]["ElasticNet"]["params"]["alpha"]
+    l1_ratio = config["estimators"]["ElasticNet"]["params"]["l1_ratio"]
 
     target = config["base"]["target_col"]
     train=pd.read_csv(train_data_path)
     test=pd.read_csv(test_data_path)
 
+    train_y = train[target]
+    test_y = test[target]
+
+    train_x = train.drop(target,axis=1)
+    test_x = test.drop(target,axis=1)
+
+    lr = ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=random_state)
+    lr.fit(train_x,train_y)
+    y_pred = lr.predict(test_x)
+    
+    (rmse,mae,r2,mse) = eval_metrics(test_y,y_pred)
+
+    print("ElasticNet model (alpha=%f, l1_ratio=%f) :" % (alpha, l1_ratio))
+
+    score_files = config["reports"]["score"]
+    params_file = config["reports"]["params"]
+
+    with open(score_files,"w") as f:
+        scores ={
+            "rmse":rmse,
+            "mae":mae,
+            "r2":r2,
+            "mse":mse
+        }
+        json.dump(scores,f)
+
+    with open(params_file,"w") as f:
+        params ={
+            "alpha":alpha,
+            "l1_ratio":l1_ratio
+        }
+        
+        json.dump(params,f)
+
+    model_path = config["model_path"]
+    joblib.dump(lr,model_path)
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument("--config",default="C:/Users/Sarthak/OneDrive/Documents/Desktop/VAC-MLOPS/params.yml")
+    default_config_path = os.getenv("CONFIG_PATH", "params.yml")
+    args.add_argument("--config",default=default_config_path)
     parsed_args = args.parse_args()
     train_and_eval(config_path=parsed_args.config)

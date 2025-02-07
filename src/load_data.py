@@ -17,6 +17,7 @@ def load_save_data(config_path):
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument("--config",default="C:/Users/Sarthak/OneDrive/Documents/Desktop/VAC-MLOPS/params.yml")
+    default_config_path = os.getenv("CONFIG_PATH", "params.yml")
+    args.add_argument("--config",default=default_config_path)
     parsed_args = args.parse_args()
     load_save_data(config_path=parsed_args.config)
