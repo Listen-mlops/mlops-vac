@@ -1,8 +1,9 @@
 artifact_uri: mlflow-artifacts:/153633529469520642/98291d4996de4cb69aa35ffee4ab7495/artifacts
+deleted_time: 1738910172607
 end_time: 1738908950229
 entry_point_name: ''
 experiment_id: '153633529469520642'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: 98291d4996de4cb69aa35ffee4ab7495
 run_name: insurance_run
 run_uuid: 98291d4996de4cb69aa35ffee4ab7495

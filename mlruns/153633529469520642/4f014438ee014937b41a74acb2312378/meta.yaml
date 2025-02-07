@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/153633529469520642/4f014438ee014937b41a74acb2312378/artifacts
+end_time: 1738910359272
+entry_point_name: ''
+experiment_id: '153633529469520642'
+lifecycle_stage: active
+run_id: 4f014438ee014937b41a74acb2312378
+run_name: insurance_run
+run_uuid: 4f014438ee014937b41a74acb2312378
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1738910353445
+status: 3
+tags: []
+user_id: Sarthak
