@@ -8,7 +8,7 @@ on:
 jobs:
   build_analyze_scan:
     name: Build
-    runs-on: ubuntu-latest        #[self-hosted]
+    runs-on: ubuntu-latest  # Change to 'self-hosted' if using a self-hosted runner
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -23,20 +23,48 @@ jobs:
 
       - name: Install Docker and Docker Compose
         run: |
+          echo "Updating package lists..."
           sudo apt-get update
+
+          echo "Installing Docker and Docker Compose..."
           sudo apt-get install -y docker.io docker-compose
+
+          echo "Starting and enabling Docker service..."
           sudo systemctl start docker
           sudo systemctl enable docker
+
+          echo "Checking Docker version..."
+          docker --version || { echo "Docker installation failed"; exit 1; }
+
+          echo "Checking Docker Compose version..."
+          docker-compose --version || { echo "Docker Compose installation failed"; exit 1; }
+
+      - name: Add User to Docker Group
+        run: |
+          echo "Adding current user to the Docker group..."
           sudo usermod -aG docker $USER
-          newgrp docker
-          docker --version
-          docker-compose --version  # Verify installation
+          newgrp docker || { echo "User group change failed"; exit 1; }
+
+      - name: Verify Docker Permissions
+        run: |
+          echo "Checking Docker service status..."
+          sudo systemctl status docker || { echo "Docker is not running"; exit 1; }
+
+          echo "Checking if user can run Docker commands..."
+          docker ps || { echo "Docker command failed"; exit 1; }
 
       - name: Docker Build and Push
         env:
           DOCKER_CLI_ACI: 1
         run: |
-          docker-compose -f docker-compose.yaml build
+          echo "Building Docker image..."
+          docker-compose -f docker-compose.yaml build || { echo "Docker build failed"; exit 1; }
+
+          echo "Tagging Docker image..."
           docker tag webapp:latest frosty888/webapp:latest
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push frosty888/webapp:latest
+
+          echo "Logging into Docker Hub..."
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || { echo "Docker login failed"; exit 1; }
+
+          echo "Pushing Docker image to Docker Hub..."
+          docker push frosty888/webapp:latest || { echo "Docker push failed"; exit 1; }
