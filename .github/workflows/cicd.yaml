@@ -1,5 +1,4 @@
 name: Build, Analyze, Scan
-
 on:
   push:
     branches:
@@ -8,9 +7,9 @@ on:
 jobs:
   build_analyze_scan:
     name: Build
-    runs-on: ubuntu-latest  # Change to 'self-hosted' if using a self-hosted runner
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v2
 
       - name: Set up Python 3.11
@@ -19,52 +18,21 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Install Docker and Docker Compose
         run: |
-          echo "Updating package lists..."
-          sudo apt-get update
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-          echo "Installing Docker and Docker Compose..."
-          sudo apt-get install -y docker.io docker-compose
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-          echo "Starting and enabling Docker service..."
-          sudo systemctl start docker
-          sudo systemctl enable docker
-
-          echo "Checking Docker version..."
-          docker --version || { echo "Docker installation failed"; exit 1; }
-
-          echo "Checking Docker Compose version..."
-          docker-compose --version || { echo "Docker Compose installation failed"; exit 1; }
-
-      - name: Add User to Docker Group
-        run: |
-          echo "Adding current user to the Docker group..."
-          sudo usermod -aG docker $USER
-          newgrp docker || { echo "User group change failed"; exit 1; }
-
-      - name: Verify Docker Permissions
-        run: |
-          echo "Checking Docker service status..."
-          sudo systemctl status docker || { echo "Docker is not running"; exit 1; }
-
-          echo "Checking if user can run Docker commands..."
-          docker ps || { echo "Docker command failed"; exit 1; }
-
-      - name: Docker Build and Push
-        env:
-          DOCKER_CLI_ACI: 1
-        run: |
-          echo "Building Docker image..."
-          docker-compose -f docker-compose.yaml build || { echo "Docker build failed"; exit 1; }
-
-          echo "Tagging Docker image..."
-          docker tag webapp:latest frosty888/webapp:latest
-
-          echo "Logging into Docker Hub..."
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || { echo "Docker login failed"; exit 1; }
-
-          echo "Pushing Docker image to Docker Hub..."
-          docker push frosty888/webapp:latest || { echo "Docker push failed"; exit 1; }
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: frosty888/webapp:latest
